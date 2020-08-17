@@ -5,10 +5,12 @@ use Github\ResultPager;
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
 
-$dsn = 'mysql:dbname='.MYSQL_DATABASE.';host='.MYSQL_HOST.':'.MYSQL_PORT;
-$pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD);
-
-var_dump($pdo);die();
+$dsn = 'mysql:host='.MYSQL_HOST.';dbname='.MYSQL_DATABASE.';port='.MYSQL_PORT;
+try {
+    $pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD);
+} catch (Exception $e) {
+    die("Unable to connect to database.".PHP_EOL);
+}
 
 
 //Github token data
@@ -35,5 +37,6 @@ foreach ($branches as $branch) {
     echo "Checking $branch...".PHP_EOL;
     $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
     $results[$branch] = count($prs);
+
 }
 
