@@ -39,7 +39,7 @@ foreach ($branches as $branch) {
     $sth = $pdo->prepare($sql);
     $sth->execute([
         'branch' => $branch,
-        'value' => count($prs),
+        'value' => $prs['total_count'],
     ]);
 }
 
