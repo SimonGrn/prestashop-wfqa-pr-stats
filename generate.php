@@ -30,13 +30,16 @@ $client = new Client();
 $client->authenticate($token, null, Github\Client::AUTH_ACCESS_TOKEN);
 $paginator = new ResultPager($client);
 
-$results = [];
-
 foreach ($branches as $branch) {
     //insert entry in results
     echo "Checking $branch...".PHP_EOL;
     $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
-    $results[$branch] = count($prs);
 
+    $sql = 'INSERT INTO `entry` (`branch`, `datetime`, `value`) VALUES (:branch, CURRENT_TIMESTAMP, :value);';
+    $sth = $pdo->prepare($sql);
+    $sth->execute([
+        'branch' => $branch,
+        'value' => count($prs),
+    ]);
 }
 
