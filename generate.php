@@ -3,6 +3,13 @@ use Github\Client;
 use Github\ResultPager;
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/config.php';
+
+$dsn = 'mysql:dbname='.MYSQL_DATABASE.';host='.MYSQL_HOST.':'.MYSQL_PORT;
+$pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD);
+
+var_dump($pdo);die();
+
 
 //Github token data
 if (!file_exists('token.txt')) {
@@ -30,4 +37,3 @@ foreach ($branches as $branch) {
     $results[$branch] = count($prs);
 }
 
-var_dump($results);

@@ -3,3 +3,4 @@ reports/*.md
 .idea
 token.txt
 *.json
+config.php
