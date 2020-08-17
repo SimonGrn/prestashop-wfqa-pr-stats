@@ -6,16 +6,16 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/mysql.php';
 
 //Github token data
-if (!file_exists(__DIR__ . 'token.txt')) {
+if (!file_exists(__DIR__ . '/token.txt')) {
     exit("Token file not found." . PHP_EOL);
 }
-$token = file_get_contents('token.txt');
+$token = file_get_contents(__DIR__ . '/token.txt');
 
 //Branches data
-if (!file_exists(__DIR__ . 'branches.txt')) {
+if (!file_exists(__DIR__ . '/branches.txt')) {
     exit("Branches file not found." . PHP_EOL);
 }
-$branches_data = file_get_contents(__DIR__ . 'branches.txt');
+$branches_data = file_get_contents(__DIR__ . '/branches.txt');
 $branches = array_filter(explode(PHP_EOL, $branches_data));
 
 $client = new Client();
