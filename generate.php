@@ -21,10 +21,11 @@ $branches = array_filter(explode(PHP_EOL, $branches_data));
 $client = new Client();
 $client->authenticate($token, null, Github\Client::AUTH_ACCESS_TOKEN);
 $paginator = new ResultPager($client);
+echo "----- New insert at ".date('Y-m-d H:i:s').PHP_EOL;
 
 foreach ($branches as $branch) {
     //insert entry in results
-    echo "Checking $branch...".PHP_EOL;
+    echo "Checking $branch... ";
     $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
 
     $sql = 'INSERT INTO `entry` (`branch`, `datetime`, `value`) VALUES (:branch, CURRENT_TIMESTAMP, :value);';
@@ -33,5 +34,6 @@ foreach ($branches as $branch) {
         'branch' => $branch,
         'value' => $prs['total_count'],
     ]);
+    echo "(".$prs['total_count']." PRs)".PHP_EOL;
 }
-
+echo "-----".PHP_EOL.PHP_EOL;
