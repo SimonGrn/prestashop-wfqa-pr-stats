@@ -12,10 +12,13 @@ $sth = $pdo->prepare($sql);
 $sth->execute();
 $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 $branches = [
-    'All'
+    'develop'
 ];
+$branch = 'develop';
 foreach($rows as $row) {
-    $branches[] = $row['branch'];
+    if ($row['branch'] != 'develop') {
+        $branches[] = $row['branch'];
+    }
 }
 
 if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
@@ -31,27 +34,27 @@ if (isset($_GET['branch']) && in_array($_GET['branch'], $branches)) {
 $sql_values = [
     'start_date' => $start_date,
     'end_date' => date('Y-m-d', strtotime($end_date) + 3600*24),
+    'branch' => $branch,
 ];
-$sql = "SELECT branch, datetime, value
+$sql = "SELECT datetime, value
 FROM entry
 WHERE 1=1
 AND datetime > :start_date
-AND datetime < :end_date";
-if ($branch != "All") {
-    $sql .= " AND branch = :branch";
-    $sql_values['branch'] = $branch;
-}
+AND datetime < :end_date
+AND branch = :branch 
+ORDER BY datetime ASC;";
 $sth = $pdo->prepare($sql);
 $sth->execute($sql_values);
 $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 $results = [];
-$dates = [];
+$labels = [];
+$max = 0;
 foreach($rows as $row) {
-    $hour = date('Y-m-d H:i', strtotime($row['datetime']));
-    if (!in_array($hour, $dates)) {
-        $dates[] = $hour;
+    $labels[] = date('Y-m-d H:i', strtotime($row['datetime']));
+    $results[] = (int) $row['value'];
+    if ($row['value'] > $max) {
+        $max = $row['value'];
     }
-    $results[$row['branch']][] = (int) $row['value'];
 }
 
 $colors = [
@@ -119,26 +122,17 @@ $colors = [
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <script>
-    <?php
-        $i = 0;
-        $datasets = [];
-        foreach($results as $branch => $values) {
-            $datasets[] = [
-                'label' => $branch.' branch',
-                'borderColor' => $colors[$i%count($colors)],
-                'data' => $values,
-            ];
-            $i++;
-        }
-    ?>
-
   var config = {
     type: 'line',
     data: {
-      labels: <?php echo json_encode(array_values($dates)); ?>,
-      datasets: <?php
-        echo json_encode($datasets, JSON_NUMERIC_CHECK);
-        ?>
+      labels: <?php echo json_encode(array_values($labels)); ?>,
+      datasets: [
+        {
+          label: '<?php echo $branch; ?>',
+          borderColor: '<?php echo $colors[rand(0, count($colors)-1)]; ?>',
+          data: <?php echo json_encode($results, JSON_NUMERIC_CHECK); ?>
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -167,6 +161,11 @@ $colors = [
           scaleLabel: {
             display: true,
             labelString: 'Number of PR'
+          },
+          ticks: {
+            beginAtZero: true,
+            stepSize: 1,
+            max:<?php echo $max+2; ?>
           }
         }]
       }
