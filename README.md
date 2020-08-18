@@ -14,11 +14,10 @@ Copy the `config.php.dist` file:
 * change the values inside for your correct MySQL values
 * add your [Github token](https://github.com/settings/tokens/new)
 * change the scanned branches
+
 and rename it `config.php`.
 
 ### How to use
-You can add or remove branches in the `branches.txt` file.
-
 Use the `generate.php` file to insert data into your database
 
 Use the `index.php` file to browse the data.
