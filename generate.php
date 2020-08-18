@@ -5,25 +5,12 @@ use Github\ResultPager;
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/mysql.php';
 
-//Github token data
-if (!file_exists(__DIR__ . '/token.txt')) {
-    exit("Token file not found." . PHP_EOL);
-}
-$token = file_get_contents(__DIR__ . '/token.txt');
-
-//Branches data
-if (!file_exists(__DIR__ . '/branches.txt')) {
-    exit("Branches file not found." . PHP_EOL);
-}
-$branches_data = file_get_contents(__DIR__ . '/branches.txt');
-$branches = array_filter(explode(PHP_EOL, $branches_data));
-
 $client = new Client();
-$client->authenticate($token, null, Github\Client::AUTH_ACCESS_TOKEN);
+$client->authenticate(GITHUB_TOKEN, null, Github\Client::AUTH_ACCESS_TOKEN);
 $paginator = new ResultPager($client);
 echo "----- New insert at ".date('Y-m-d H:i:s').PHP_EOL;
 
-foreach ($branches as $branch) {
+foreach (BRANCHES as $branch) {
     //insert entry in results
     echo "Checking $branch... ";
     $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
