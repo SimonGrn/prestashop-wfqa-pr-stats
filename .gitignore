@@ -1,8 +1,5 @@
 /vendor/
 reports/*.md
 .idea
-token.txt
-branches.txt
-*.json
 config.php
 
