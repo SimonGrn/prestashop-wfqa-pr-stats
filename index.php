@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/mysql.php';
 
-$start_date = date("Y-m-d", strtotime( date( "Y-m-d", strtotime( date("Y-m-d") ) ) . "-1 month" ) );
+$start_date = date("Y-m-d", strtotime( date( "Y-m-d", strtotime( date("Y-m-d") ) ) . "-1 week" ) );
 $end_date = date('Y-m-d');
 $branch = 'All';
 
@@ -11,14 +11,9 @@ $sql = "SELECT DISTINCT(branch) FROM entry;";
 $sth = $pdo->prepare($sql);
 $sth->execute();
 $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-$branches = [
-    'develop'
-];
-$branch = 'develop';
+$branches = [];
 foreach($rows as $row) {
-    if ($row['branch'] != 'develop') {
-        $branches[] = $row['branch'];
-    }
+    $branches[] = $row['branch'];
 }
 
 if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
@@ -26,36 +21,32 @@ if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
     $end_date = date('Y-m-d', strtotime($_GET['end_date']));
 }
 
-if (isset($_GET['branch']) && in_array($_GET['branch'], $branches)) {
-    $branch = $_GET['branch'];
-}
-
 //get data
 $sql_values = [
     'start_date' => $start_date,
-    'end_date' => date('Y-m-d', strtotime($end_date) + 3600*24),
-    'branch' => $branch,
+    'end_date' => date('Y-m-d', strtotime($end_date) + 3600*24)
 ];
-$sql = "SELECT datetime, value
+$sql = "SELECT branch, datetime, value
 FROM entry
 WHERE 1=1
 AND datetime > :start_date
 AND datetime < :end_date
-AND branch = :branch 
 ORDER BY datetime ASC;";
 $sth = $pdo->prepare($sql);
 $sth->execute($sql_values);
 $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 $results = [];
-$labels = [];
 $max = 0;
 foreach($rows as $row) {
-    $labels[] = date('Y-m-d H:i', strtotime($row['datetime']));
-    $results[] = (int) $row['value'];
+    $date = date('Y-m-d H:i', strtotime($row['datetime']));
+
+    $results[$date][$row['branch']][] = (int) $row['value'];
     if ($row['value'] > $max) {
         $max = $row['value'];
     }
 }
+
+$dates = array_keys($results);
 
 $colors = [
     'rgb(55, 55, 150)',
@@ -97,19 +88,6 @@ $colors = [
                 <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>" placeholder="End Date">
             </div>
             <div class="col">
-                <select class="form-control" id="branch" name="branch">
-                    <?php
-                        foreach($branches as $br) {
-                            $s = '';
-                            if ($br == $branch) {
-                                $s = 'selected';
-                            }
-                            echo '<option value="'.$br.'" '.$s.'>'.$br.'</option>';
-                        }
-                    ?>
-                </select>
-            </div>
-            <div class="col">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </div>
@@ -123,14 +101,27 @@ $colors = [
   var config = {
     type: 'line',
     data: {
-      labels: <?php echo json_encode(array_values($labels)); ?>,
-      datasets: [
-        {
-          label: '<?php echo $branch; ?>',
-          borderColor: '<?php echo $colors[rand(0, count($colors)-1)]; ?>',
-          data: <?php echo json_encode($results, JSON_NUMERIC_CHECK); ?>
-        }
-      ]
+      labels: <?php echo json_encode(array_keys($results)); ?>,
+      datasets:
+        <?php
+            $data = [];
+            foreach ($branches as $branch) {
+                foreach($dates as $date) {
+                    $data[$branch][] = isset($results[$date][$branch]) ? $results[$date][$branch] : null;
+                }
+            }
+            $json = [];
+            $ic = 0;
+            foreach($data as $branch => $value) {
+                $json[] = [
+                        'label' => $branch,
+                        'borderColor' => $colors[$ic%count($colors)],
+                        'data' => $value
+                ];
+                $ic++;
+            }
+            echo json_encode($json);
+        ?>
     },
     options: {
       responsive: true,
