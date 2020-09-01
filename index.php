@@ -65,13 +65,26 @@ $colors = [
             padding-top: 10px;
             padding-bottom: 10px;
         }
+
+        span.branch {
+            font-family: 'Courier New', serif;
+            font-weight: bold;
+        }
     </style>
 
-    <title>PrestaShop PR Browsing</title>
+    <title>PrestaShop WFQA PR Stats</title>
 </head>
 <body>
 <div class="container">
-    <h1>PrestaShop PR Browsing</h1>
+    <h1>PrestaShop WFQA PR Stats</h1>
+    <br>
+    <p>This graph shows how many Pull Requests are actually labelled with the <strong>Waiting for QA</strong> label for the branches
+        <?php echo implode(', ', array_map(
+                function ($branch) {
+                    return sprintf("<span class='branch'>%s</span>", $branch);
+                }
+            , $branches)); ?>.</p>
+    <p>It is updated every 6 hours.</p>
     <form>
         <div class="form-row">
             <div class="col">
@@ -119,7 +132,7 @@ $colors = [
       responsive: true,
       title: {
         display: true,
-        text: 'Number of PR per branch'
+        text: 'Number of PRs in WFQA per branch'
       },
       tooltips: {
         mode: 'index',
@@ -141,7 +154,7 @@ $colors = [
           display: true,
           scaleLabel: {
             display: true,
-            labelString: 'Number of PR'
+            labelString: 'Number of PRs'
           },
           ticks: {
             beginAtZero: true
