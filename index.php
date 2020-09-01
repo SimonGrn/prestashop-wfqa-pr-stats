@@ -1,20 +1,11 @@
 <?php
 
 require_once __DIR__ . '/mysql.php';
+$mysql = new PDOWrapper();
 
 $start_date = date("Y-m-d", strtotime( date( "Y-m-d", strtotime( date("Y-m-d") ) ) . "-1 week" ) );
 $end_date = date('Y-m-d');
 $branch = 'All';
-
-//get branches
-$sql = "SELECT DISTINCT(branch) FROM entry;";
-$sth = $pdo->prepare($sql);
-$sth->execute();
-$rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-$branches = [];
-foreach($rows as $row) {
-    $branches[] = $row['branch'];
-}
 
 if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
     $start_date = date('Y-m-d', strtotime($_GET['start_date']));
@@ -22,27 +13,29 @@ if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
 }
 
 //get data
-$sql_values = [
-    'start_date' => $start_date,
-    'end_date' => date('Y-m-d', strtotime($end_date) + 3600*24)
-];
-$sql = "SELECT branch, datetime, value
-FROM entry
+$sql = "SELECT e.id, e.datetime, DATE_FORMAT(e.datetime, '%Y-%m-%d %H:%i') date_formatted, d.branch, d.value
+FROM entry e
+INNER JOIN data d ON e.id = d.entry_id
 WHERE 1=1
-AND datetime > :start_date
-AND datetime < :end_date
-ORDER BY datetime ASC;";
-$sth = $pdo->prepare($sql);
-$sth->execute($sql_values);
-$rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+AND e.datetime > :start_date
+AND e.datetime < :end_date
+ORDER BY e.datetime ASC;";
+$data = [
+    'start_date' => $start_date,
+    'end_date' => date('Y-m-d', strtotime($end_date) + 3600*24),
+];
+$rows = $mysql->query($sql, $data);
 $results = [];
+$branches = [];
 $max = 0;
 foreach($rows as $row) {
-    $date = date('Y-m-d H:i', strtotime($row['datetime']));
 
-    $results[$date][$row['branch']][] = (int) $row['value'];
+    $results[$row['date_formatted']][$row['branch']][] = (int) $row['value'];
     if ($row['value'] > $max) {
         $max = $row['value'];
+    }
+    if (!in_array($row['branch'], $branches)) {
+        $branches[] = $row['branch'];
     }
 }
 
@@ -151,9 +144,7 @@ $colors = [
             labelString: 'Number of PR'
           },
           ticks: {
-            beginAtZero: true,
-            stepSize: 1,
-            max:<?php echo $max+2; ?>
+            beginAtZero: true
           }
         }]
       }
