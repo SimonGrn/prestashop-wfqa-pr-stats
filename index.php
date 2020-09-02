@@ -5,7 +5,6 @@ $mysql = new PDOWrapper();
 
 $start_date = date("Y-m-d", strtotime( date( "Y-m-d", strtotime( date("Y-m-d") ) ) . "-1 week" ) );
 $end_date = date('Y-m-d');
-$branch = 'All';
 
 if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
     $start_date = date('Y-m-d', strtotime($_GET['start_date']));
@@ -13,7 +12,7 @@ if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
 }
 
 //get data
-$sql = "SELECT e.id, e.datetime, DATE_FORMAT(e.datetime, '%Y-%m-%d %H:%i') date_formatted, d.branch, d.value
+$sql = "SELECT e.id, e.datetime, DATE_FORMAT(e.datetime, '%d/%m %H:%i') date_formatted, d.branch, d.value
 FROM entry e
 INNER JOIN data d ON e.id = d.entry_id
 WHERE 1=1
@@ -68,7 +67,9 @@ $colors = [
 
         span.branch {
             font-family: 'Courier New', serif;
-            font-weight: bold;
+            background-color: rgba(27,31,35,.05);
+            border-radius: 6px;
+            padding: .2em .4em;
         }
     </style>
 
@@ -78,13 +79,6 @@ $colors = [
 <div class="container">
     <h1>PrestaShop WFQA PR Stats</h1>
     <br>
-    <p>This graph shows how many Pull Requests are actually labelled with the <strong>Waiting for QA</strong> label for the branches
-        <?php echo implode(', ', array_map(
-                function ($branch) {
-                    return sprintf("<span class='branch'>%s</span>", $branch);
-                }
-            , $branches)); ?>.</p>
-    <p>It is updated every 6 hours.</p>
     <form>
         <div class="form-row">
             <div class="col">
@@ -100,6 +94,17 @@ $colors = [
     </form>
     <hr>
     <canvas id="data"></canvas>
+    <hr>
+    <p>This graph shows how many Pull Requests are actually labelled with the <strong>Waiting for QA</strong> label for the following branches:
+    <ul>
+        <?php
+        foreach($branches as $branch) {
+            echo '<li><span class="branch">'.$branch.'</span></li>';
+        }
+        ?>
+    </ul>
+    </p>
+    <p>It is updated every 6 hours.</p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <script>

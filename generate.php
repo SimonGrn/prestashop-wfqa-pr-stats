@@ -16,7 +16,9 @@ $sql = 'INSERT INTO `entry` (`datetime`) VALUES (CURRENT_TIMESTAMP);';
 $mysql->query($sql);
 $entry_id = $mysql->lastInsertId();
 
-foreach (BRANCHES as $branch) {
+$branches = explode(',', BRANCHES);
+
+foreach ($branches as $branch) {
     //insert entry in results
     echo "Checking $branch... ";
     $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
