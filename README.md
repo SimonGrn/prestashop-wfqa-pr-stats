@@ -1,4 +1,4 @@
-# prestashop-pr-stats
+# prestashop-wfqa-pr-stats
 
 :warning: this project **needs** PHP 7.
 
@@ -18,6 +18,7 @@ Copy the `config.php.dist` file:
 and rename it `config.php`.
 
 ### How to use
-Use the `generate.php` file to insert data into your database
+Use the `generate.php` file to insert data into your database at regular intervals (for example, every 6 hours) 
+with a cronjob or something similar.
 
 Use the `index.php` file to browse the data.
