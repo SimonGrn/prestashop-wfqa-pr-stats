@@ -21,7 +21,7 @@ $branches = explode(',', BRANCHES);
 foreach ($branches as $branch) {
     //insert entry in results
     echo "Checking $branch... ";
-    $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"waiting for QA" -label:"waiting for author"');
+    $prs = $client->api('search')->issues('repo:PrestaShop/PrestaShop is:pr is:open label:'.$branch.' label:"Waiting for QA" -label:"Waiting for author" -label:"waiting for dev" -label:"waiting for PM"');
     $sql = 'INSERT INTO `data` (`entry_id`, `branch`, `value`) VALUES (:entry_id, :branch, :value);';
     $data = [
         'entry_id' => $entry_id,
